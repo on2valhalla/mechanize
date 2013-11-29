@@ -270,7 +270,7 @@ class OpenerDirector(_urllib2_fork.OpenerDirector):
                 read = 0
                 blocknum = 0
                 if reporthook:
-                    if "content-length" in headers:
+                    if "Content-Length" in headers:
                         size = int(headers["Content-Length"])
                     reporthook(blocknum, bs, size)
                 while 1:
