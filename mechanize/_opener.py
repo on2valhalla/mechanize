@@ -266,29 +266,27 @@ class OpenerDirector(_urllib2_fork.OpenerDirector):
             try:
                 result = filename, headers
                 bs = self.BLOCK_SIZE
-                size = -1
-                read = 0
-                blocknum = 0
-                if reporthook:
-                    if "content-length" in headers:
-                        size = int(headers["Content-Length"])
-                    reporthook(blocknum, bs, size)
-                while 1:
-                    block = fp.read(bs)
-                    if block == "":
+                if "Content-Length" in headers:
+                    size = int(headers["Content-Length"])
+                else:
+                    size = -1
+                bytes_read = 0
+                blocks_written = 0
+                for block in iter(lambda: fp.read(bs)):
+                    if not block:
                         break
-                    read += len(block)
-                    tfp.write(block)
-                    blocknum += 1
                     if reporthook:
-                        reporthook(blocknum, bs, size)
+                        reporthook(blocks_written, bs, size)
+                    bytes_read += len(block)
+                    tfp.write(block)
+                    blocks_written += 1
             finally:
                 tfp.close()
         finally:
             fp.close()
 
         # raise exception if actual size does not match content-length header
-        if size >= 0 and read < size:
+        if size >= 0 and bytes_read < size:
             raise ContentTooShortError(
                 "retrieval incomplete: "
                 "got only %i out of %i bytes" % (read, size),
